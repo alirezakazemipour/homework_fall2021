@@ -132,7 +132,7 @@ class MLPPolicySL(MLPPolicy):
             action_dist = distributions.Normal(mu, std)
 
         # loss = self.loss(action_dist, actions_tensor)
-        loss = -action_dist.log_prob(actions_tensor).mean()
+        loss = -action_dist.log_prob(actions_tensor).mean()  # negative  log-likelihood
 
         self.optimizer.zero_grad()
         loss.backward()
