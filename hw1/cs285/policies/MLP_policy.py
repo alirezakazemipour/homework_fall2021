@@ -9,8 +9,8 @@ import numpy as np
 import torch
 from torch import distributions
 
-from cs285.infrastructure import pytorch_util as ptu
-from cs285.policies.base_policy import BasePolicy
+from ..infrastructure import pytorch_util as ptu
+from ..policies.base_policy import BasePolicy
 
 
 class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
@@ -81,7 +81,18 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs[None]
 
         # TODO return the action that the policy prescribes
-        raise NotImplementedError
+        observation_tensor = ptu.from_numpy(observation)
+        if self.discrete:
+            logits = self.logits_na(observation_tensor)
+            action_dist = distributions.Categorical(logits=logits)
+            action_tensor = action_dist.sample()
+        else:
+            mu = self.mean_net(observation_tensor)
+            std = self.logstd.exp()
+            action_dist = distributions.Normal(mu, std)
+            action_tensor = action_dist.sample()
+
+        return ptu.to_numpy(action_tensor)
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -102,14 +113,31 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 class MLPPolicySL(MLPPolicy):
     def __init__(self, ac_dim, ob_dim, n_layers, size, **kwargs):
         super().__init__(ac_dim, ob_dim, n_layers, size, **kwargs)
-        self.loss = nn.MSELoss()
+        self.loss = nn.MSELoss()  # should negative log-likelihood!
 
     def update(
             self, observations, actions,
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
-        loss = TODO
+        observations_tensor = ptu.from_numpy(observations)
+        actions_tensor = ptu.from_numpy(actions)
+        if self.discrete:
+            logits = self.logits_na(observations_tensor)
+            action_dist = distributions.Categorical(logits=logits)
+            action_pred_tensor = action_dist.sample()
+        else:
+            mu = self.mean_net(observations_tensor)
+            std = self.logstd.exp()
+            action_dist = distributions.Normal(mu, std)
+
+        # loss = self.loss(action_dist, actions_tensor)
+        loss = -action_dist.log_prob(actions_tensor).mean()
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
