@@ -1,9 +1,9 @@
 import os
 import time
 
-from cs285.infrastructure.rl_trainer import RL_Trainer
-from cs285.agents.dqn_agent import DQNAgent
-from cs285.infrastructure.dqn_utils import get_env_kwargs
+from hw3.cs285.infrastructure.rl_trainer import RL_Trainer
+from hw3.cs285.agents.dqn_agent import DQNAgent
+from hw3.cs285.infrastructure.dqn_utils import get_env_kwargs
 
 
 class Q_Trainer(object):
@@ -43,7 +43,7 @@ def main():
     parser.add_argument(
         '--env_name',
         default='MsPacman-v0',
-        choices=('PongNoFrameskip-v4', 'LunarLander-v3', 'MsPacman-v0')
+        choices=('PongNoFrameskip-v4', 'LunarLander-v2', 'MsPacman-v0')
     )
 
     parser.add_argument('--ep_len', type=int, default=200)

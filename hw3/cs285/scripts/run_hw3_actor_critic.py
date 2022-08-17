@@ -1,8 +1,8 @@
 import os
 import time
 
-from cs285.agents.ac_agent import ACAgent
-from cs285.infrastructure.rl_trainer import RL_Trainer
+from hw3.cs285.agents.ac_agent import ACAgent
+from hw3.cs285.infrastructure.rl_trainer import RL_Trainer
 
 
 class AC_Trainer(object):

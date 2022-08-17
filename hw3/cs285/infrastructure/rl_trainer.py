@@ -8,13 +8,13 @@ import gym
 from gym import wrappers
 import numpy as np
 import torch
-from cs285.infrastructure import pytorch_util as ptu
+from hw3.cs285.infrastructure import pytorch_util as ptu
 
-from cs285.infrastructure import utils
-from cs285.infrastructure.logger import Logger
+from hw3.cs285.infrastructure import utils
+from hw3.cs285.infrastructure.logger import Logger
 
-from cs285.agents.dqn_agent import DQNAgent
-from cs285.infrastructure.dqn_utils import (
+from hw3.cs285.agents.dqn_agent import DQNAgent
+from hw3.cs285.infrastructure.dqn_utils import (
         get_wrapper_by_name,
         register_custom_envs,
 )
@@ -54,21 +54,21 @@ class RL_Trainer(object):
         self.env = gym.make(self.params['env_name'])
         if 'env_wrappers' in self.params:
             # These operations are currently only for Atari envs
-            self.env = wrappers.Monitor(
+            self.env = wrappers.RecordEpisodeStatistics(
                 self.env,
-                os.path.join(self.params['logdir'], "gym"),
-                force=True,
-                video_callable=(None if self.params['video_log_freq'] > 0 else False),
+                # os.path.join(self.params['logdir'], "gym"),
+                # force=True,
+                # video_callable=(None if self.params['video_log_freq'] > 0 else False),
             )
             self.env = params['env_wrappers'](self.env)
             self.mean_episode_reward = -float('nan')
             self.best_mean_episode_reward = -float('inf')
         if 'non_atari_colab_env' in self.params and self.params['video_log_freq'] > 0:
-            self.env = wrappers.Monitor(
+            self.env = wrappers.RecordEpisodeStatistics(
                 self.env,
-                os.path.join(self.params['logdir'], "gym"),
-                force=True,
-                video_callable=(None if self.params['video_log_freq'] > 0 else False),
+                # os.path.join(self.params['logdir'], "gym"),
+                # force=True,
+                # video_callable=(None if self.params['video_log_freq'] > 0 else False),
             )
             self.mean_episode_reward = -float('nan')
             self.best_mean_episode_reward = -float('inf')
@@ -211,18 +211,48 @@ class RL_Trainer(object):
             train_video_paths: paths which also contain videos for visualization purposes
         """
         # TODO: get this from hw1 or hw2
+        print("\nCollecting data to be used for training...")
+        paths, envsteps_this_batch = utils.sample_trajectories(self.env,
+                                                               collect_policy,
+                                                               num_transitions_to_sample,
+                                                               self.params['ep_len']
+                                                               )
+
+        # collect more rollouts with the same policy, to be saved as videos in tensorboard
+        # note: here, we collect MAX_NVIDEO rollouts, each of length MAX_VIDEO_LEN
+        train_video_paths = None
+        if self.logvideo or self.logmetrics:
+            print('\nCollecting train rollouts to be used for saving videos...')
+            ## TODO look in utils and implement sample_n_trajectories
+            train_video_paths = utils.sample_n_trajectories(self.env, collect_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
 
         return paths, envsteps_this_batch, train_video_paths
 
     def train_agent(self):
         # TODO: get this from hw1 or hw2
+        # print('\nTraining agent using sampled data from replay buffer...')
+        all_logs = []
+        for train_step in range(self.params['num_agent_train_steps_per_iter']):
+            # TODO sample some data from the data buffer
+            # HINT1: use the agent's sample function
+            # HINT2: how much data = self.params['train_batch_size']
+            ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample(
+                self.params['train_batch_size']
+            )
+
+            # TODO use the sampled data to train an agent
+            # HINT: use the agent's train function
+            # HINT: keep the agent's training log for debugging
+            train_log = self.agent.train(ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch)
+            all_logs.append(train_log)
+        return all_logs
 
     ####################################
     ####################################
     def perform_dqn_logging(self, all_logs):
         last_log = all_logs[-1]
 
-        episode_rewards = get_wrapper_by_name(self.env, "Monitor").get_episode_rewards()
+        episode_rewards = get_wrapper_by_name(self.env, "RecordEpisodeStatistics").episode_returns
         if len(episode_rewards) > 0:
             self.mean_episode_reward = np.mean(episode_rewards[-100:])
         if len(episode_rewards) > 100:
