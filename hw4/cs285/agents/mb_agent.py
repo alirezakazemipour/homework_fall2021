@@ -1,8 +1,10 @@
+import random
+
 from .base_agent import BaseAgent
-from cs285.models.ff_model import FFModel
-from cs285.policies.MPC_policy import MPCPolicy
-from cs285.infrastructure.replay_buffer import ReplayBuffer
-from cs285.infrastructure.utils import *
+from hw4.cs285.models.ff_model import FFModel
+from hw4.cs285.policies.MPC_policy import MPCPolicy
+from hw4.cs285.infrastructure.replay_buffer import ReplayBuffer
+from hw4.cs285.infrastructure.utils import *
 
 
 class MBAgent(BaseAgent):
@@ -47,18 +49,17 @@ class MBAgent(BaseAgent):
         num_data_per_ens = int(num_data / self.ensemble_size)
 
         for i in range(self.ensemble_size):
-
             # select which datapoints to use for this model of the ensemble
             # you might find the num_data_per_env variable defined above useful
-
-            observations = # TODO(Q1)
-            actions = # TODO(Q1)
-            next_observations = # TODO(Q1)
+            idx = np.random.choice(num_data, size=num_data_per_ens, replace=False)
+            observations = ob_no[idx]  # TODO(Q1)
+            actions = ac_na[idx]  # TODO(Q1)
+            next_observations = next_ob_no[idx]  # TODO(Q1)
 
             # use datapoints to update one of the dyn_models
-            model =  # TODO(Q1)
+            model = self.dyn_models[i]  # TODO(Q1)
             log = model.update(observations, actions, next_observations,
-                                self.data_statistics)
+                               self.data_statistics)
             loss = log['Training Loss']
             losses.append(loss)
 

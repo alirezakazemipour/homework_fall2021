@@ -1,5 +1,5 @@
 import numpy as np
-import mujoco_py
+import mujoco
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
@@ -96,13 +96,14 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         env_info = {'obs_dict': self.obs_dict,
                     'rewards': self.reward_dict,
                     'score': score}
+        done = bool(done)
         return ob, rew, done, env_info
 
     def _get_obs(self):
 
         self.obs_dict = {}
-        self.obs_dict['joints_pos'] = self.sim.data.qpos.flat.copy()
-        self.obs_dict['joints_vel'] = self.sim.data.qvel.flat.copy()
+        self.obs_dict['joints_pos'] = self.data.qpos.flat.copy()
+        self.obs_dict['joints_vel'] = self.data.qvel.flat.copy()
         self.obs_dict['com_torso'] = self.get_body_com("torso").flat.copy()
 
         return np.concatenate([
