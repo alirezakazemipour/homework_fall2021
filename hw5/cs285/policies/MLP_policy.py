@@ -8,8 +8,8 @@ import numpy as np
 import torch
 from torch import distributions
 
-from cs285.infrastructure import pytorch_util as ptu
-from cs285.policies.base_policy import BasePolicy
+from hw5.cs285.infrastructure import pytorch_util as ptu
+from hw5.cs285.policies.base_policy import BasePolicy
 
 
 class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
@@ -170,7 +170,8 @@ class MLPPolicyAWAC(MLPPolicy):
             adv_n = ptu.from_numpy(adv_n)
 
         # TODO update the policy network utilizing AWAC update
-
-        actor_loss = None
+        action_dist = self(observations)
+        log_probs = action_dist.log_prob(actions)
+        actor_loss = -(log_probs * torch.exp(1 / self.lambda_awac * adv_n)).mean()
         
         return actor_loss.item()

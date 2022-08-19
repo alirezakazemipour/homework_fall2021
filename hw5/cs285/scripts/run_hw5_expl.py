@@ -1,9 +1,9 @@
 import os
 import time
 
-from cs285.infrastructure.rl_trainer import RL_Trainer
-from cs285.agents.explore_or_exploit_agent import ExplorationOrExploitationAgent
-from cs285.infrastructure.dqn_utils import get_env_kwargs, PiecewiseSchedule, ConstantSchedule
+from hw5.cs285.infrastructure.rl_trainer import RL_Trainer
+from hw5.cs285.agents.explore_or_exploit_agent import ExplorationOrExploitationAgent
+from hw5.cs285.infrastructure.dqn_utils import get_env_kwargs, PiecewiseSchedule, ConstantSchedule
 
 
 class Q_Trainer(object):

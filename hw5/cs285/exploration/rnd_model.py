@@ -1,12 +1,14 @@
-from cs285.infrastructure import pytorch_util as ptu
+from hw5.cs285.infrastructure import pytorch_util as ptu
 from .base_exploration_model import BaseExplorationModel
 import torch.optim as optim
 from torch import nn
 import torch
 
+
 def init_method_1(model):
     model.weight.data.uniform_()
     model.bias.data.uniform_()
+
 
 def init_method_2(model):
     model.weight.data.normal_()
@@ -33,7 +35,7 @@ class RNDModel(nn.Module, BaseExplorationModel):
 
         self.f = ptu.build_mlp(self.ob_dim, self.output_size, self.n_layers, self.size, init_method=init_method_1)
         self.f_hat = ptu.build_mlp(self.ob_dim, self.output_size, self.n_layers, self.size, init_method=init_method_2)
-        
+
         self.optimizer = self.optimizer_spec.constructor(
             self.f_hat.parameters(),
             **self.optimizer_spec.optim_kwargs

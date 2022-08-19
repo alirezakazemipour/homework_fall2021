@@ -1,9 +1,9 @@
 import os
 import time
 
-from cs285.infrastructure.rl_trainer_awac import RL_Trainer
-from cs285.agents.awac_agent import AWACAgent
-from cs285.infrastructure.dqn_utils import get_env_kwargs, PiecewiseSchedule, ConstantSchedule
+from hw5.cs285.infrastructure.rl_trainer_awac import RL_Trainer
+from hw5.cs285.agents.awac_agent import AWACAgent
+from hw5.cs285.infrastructure.dqn_utils import get_env_kwargs, PiecewiseSchedule, ConstantSchedule
 
 
 class Q_Trainer(object):

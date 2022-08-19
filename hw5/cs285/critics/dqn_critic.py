@@ -5,7 +5,7 @@ from torch.nn import utils
 from torch import nn
 import pdb
 
-from cs285.infrastructure import pytorch_util as ptu
+from hw5.cs285.infrastructure import pytorch_util as ptu
 
 
 class DQNCritic(BaseCritic):

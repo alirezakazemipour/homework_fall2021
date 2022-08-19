@@ -5,7 +5,7 @@ from torch.nn import utils
 from torch import nn
 import pdb
 
-from cs285.infrastructure import pytorch_util as ptu
+from hw5.cs285.infrastructure import pytorch_util as ptu
 
 
 class CQLCritic(BaseCritic):
@@ -44,9 +44,21 @@ class CQLCritic(BaseCritic):
 
     def dqn_loss(self, ob_no, ac_na, next_ob_no, reward_n, terminal_n):
         """ Implement DQN Loss """
+        qa_t_values = self.q_net(ob_no)
+        q_t_values = torch.gather(qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1)
+        qa_tp1_values = self.q_net_target(next_ob_no)
+
+        if self.double_q:
+            next_actions = self.q_net(next_ob_no).argmax(dim=1)
+            q_tp1 = torch.gather(qa_tp1_values, 1, next_actions.unsqueeze(1)).squeeze(1)
+        else:
+            q_tp1, _ = qa_tp1_values.max(dim=1)
+
+        target = reward_n + self.gamma * q_tp1 * (1 - terminal_n)
+        target = target.detach()
+        loss = self.loss(q_t_values, target)
 
         return loss, qa_t_values, q_t_values
-
 
     def update(self, ob_no, ac_na, next_ob_no, reward_n, terminal_n):
         """
@@ -73,13 +85,19 @@ class CQLCritic(BaseCritic):
         # Compute the DQN Loss 
         loss, qa_t_values, q_t_values = self.dqn_loss(
             ob_no, ac_na, next_ob_no, reward_n, terminal_n
-            )
-        
+        )
+
         # CQL Implementation
         # TODO: Implement CQL as described in the pdf and paper
         # Hint: After calculating cql_loss, augment the loss appropriately
-        cql_loss = None
-        q_t_logsumexp = None
+        cql_loss = torch.mean(torch.log(torch.exp(qa_t_values).sum(-1)) - q_t_values.detach())
+        q_t_logsumexp = torch.log(torch.exp(qa_t_values).sum(-1))
+
+        loss += self.cql_alpha * cql_loss
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
         info = {'Training Loss': ptu.to_numpy(loss)}
 
@@ -89,7 +107,6 @@ class CQLCritic(BaseCritic):
         info['OOD q-values'] = ptu.to_numpy(q_t_logsumexp).mean()
 
         return info
-
 
     def update_target_network(self):
         for target_param, param in zip(

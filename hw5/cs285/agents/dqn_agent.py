@@ -1,9 +1,9 @@
 import numpy as np
 import pdb
 
-from cs285.infrastructure.dqn_utils import MemoryOptimizedReplayBuffer, PiecewiseSchedule
-from cs285.policies.argmax_policy import ArgMaxPolicy
-from cs285.critics.dqn_critic import DQNCritic
+from hw5.cs285.infrastructure.dqn_utils import MemoryOptimizedReplayBuffer, PiecewiseSchedule
+from hw5.cs285.policies.argmax_policy import ArgMaxPolicy
+from hw5.cs285.critics.dqn_critic import DQNCritic
 
 
 class DQNAgent(object):
